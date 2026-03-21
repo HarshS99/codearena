@@ -5,6 +5,11 @@ const User = require('../models/User');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'codearena_super_secret_key_2025';
 
+// Test route
+router.get("/test", (req, res) => {
+  res.json({ message: "Auth route working" });
+});
+
 // Register
 router.post('/register', async (req, res) => {
   try {

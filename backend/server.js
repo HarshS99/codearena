@@ -18,9 +18,9 @@ app.get('/', (req, res) => {
 });
 
 // MongoDB Connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/codearena')
-  .then(() => console.log('MongoDB connected successfully! 🎉'))
-  .catch(err => console.error('MongoDB connection error:', err));
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.log("MongoDB connection error:", err));
 
 // Routes
 const { router: authRoutes } = require('./routes/auth');
