@@ -19,8 +19,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_URL = 'http://localhost:5001/api';
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -29,26 +27,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const savedToken = localStorage.getItem('token');
     if (savedToken) {
       setToken(savedToken);
-      fetchCurrentUser(savedToken);
+      fetchCurrentUser();
     }
   }, []);
 
-  const fetchCurrentUser = async (authToken: string) => {
+  const fetchCurrentUser = () => {
     try {
-      const res = await fetch(`${API_URL}/auth/me`, {
-        headers: {
-          'Authorization': `Bearer ${authToken}`
-        }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUser({
-          id: data._id,
-          username: data.name,
-          email: data.email,
-          rating: data.rating || 1200,
-          rank: 9999
-        });
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
       } else {
         localStorage.removeItem('token');
         setToken(null);
@@ -61,26 +48,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = useCallback(async (email: string, password: string): Promise<boolean> => {
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setToken(data.token);
-        localStorage.setItem('token', data.token);
-        setUser({
-          id: data.user.id,
-          username: data.user.name,
-          email: data.user.email,
-          rating: data.user.rating || 1200,
-          rank: 9999
-        });
-        return true;
-      }
-      return false;
+      // Mock login delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const mockToken = 'mock_jwt_token_' + Date.now();
+      const mockUser: User = {
+        id: '1',
+        username: email.split('@')[0],
+        email: email,
+        rating: 1200,
+        rank: 9999
+      };
+      setToken(mockToken);
+      localStorage.setItem('token', mockToken);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      setUser(mockUser);
+      return true;
     } catch {
       return false;
     }
@@ -88,26 +70,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signup = useCallback(async (username: string, email: string, password: string): Promise<boolean> => {
     try {
-      const res = await fetch(`${API_URL}/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: username, email, password })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        setToken(data.token);
-        localStorage.setItem('token', data.token);
-        setUser({
-          id: data.user.id,
-          username: data.user.name,
-          email: data.user.email,
-          rating: data.user.rating || 1200,
-          rank: 9999
-        });
-        return true;
-      }
-      return false;
+      // Mock signup delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      const mockToken = 'mock_jwt_token_' + Date.now();
+      const mockUser: User = {
+        id: '1',
+        username: username,
+        email: email,
+        rating: 1200,
+        rank: 9999
+      };
+      setToken(mockToken);
+      localStorage.setItem('token', mockToken);
+      localStorage.setItem('user', JSON.stringify(mockUser));
+      setUser(mockUser);
+      return true;
     } catch {
       return false;
     }
@@ -117,6 +94,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setToken(null);
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
   }, []);
 
   return (
