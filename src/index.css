@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+/* ──────────────────────────────────────────────────
+   LeetCode design system tokens
+   ────────────────────────────────────────────────── */
+:root {
+  --lc-bg:        #1a1a1a;
+  --lc-surface:   #282828;
+  --lc-surface2:  #333333;
+  --lc-border:    #3d3d3d;
+  --lc-text:      #eff1f6;
+  --lc-muted:     #8a8a8a;
+  --lc-orange:    #ffa116;
+  --lc-orange-dim:#ffa11622;
+  --lc-easy:      #00b8a3;
+  --lc-easy-dim:  #00b8a318;
+  --lc-medium:    #ffc01e;
+  --lc-medium-dim:#ffc01e18;
+  --lc-hard:      #ff375f;
+  --lc-hard-dim:  #ff375f18;
+  --lc-green:     #2cbb5d;
+  --lc-green-dim: #2cbb5d18;
+}
+
+/* Base */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--lc-bg);
+  color: var(--lc-text);
+  font-family: "Nunito Sans", "SF Pro Text", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--lc-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--lc-muted); }
+
+/* Select option colors (dark theme) */
+select option { background: var(--lc-surface); color: var(--lc-text); }
+
+/* Utility: page wrapper (accounts for fixed navbar) */
+.page-content { padding-top: 5rem; }
