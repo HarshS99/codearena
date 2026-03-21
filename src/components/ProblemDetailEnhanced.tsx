@@ -36,7 +36,7 @@ import {
 export default function ProblemDetailEnhanced() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const problem = problems.find(p => p.id === Number(id));
   const problemDiscussions = discussions.filter(d => d.problemId === id);
 
@@ -67,32 +67,36 @@ export default function ProblemDetailEnhanced() {
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [showConsole, setShowConsole] = useState(true);
 
-  // Load saved data from local storage
+  // Load saved data from backend
   useEffect(() => {
-    if (problem && user) {
+    if (problem && user && token) {
+      // Fetch bookmarks, notes, submissions. Code is still local for speed.
       const savedCode = localStorage.getItem(`code_${user.email}_${problem.id}_${language}`);
       setCode(savedCode || problem.starterCode[language] || '');
 
-      const storedBookmarks = localStorage.getItem('codearena_bookmarks');
-      if (storedBookmarks) {
-        const parsed = JSON.parse(storedBookmarks).map(Number);
-        setIsBookmarked(parsed.includes(problem.id));
-      }
-
-      const storedNotes = localStorage.getItem('codearena_notes');
-      if (storedNotes) {
-        const parsedNotes = JSON.parse(storedNotes);
-        const noteObj = parsedNotes.find((n: any) => n.problemId === problem.id);
-        if (noteObj) setNotes(noteObj.content);
-      }
-
-      const storedSubs = localStorage.getItem('codearena_submissions');
-      if (storedSubs) {
-        const parsedSubs = JSON.parse(storedSubs);
-        setSubmissions(parsedSubs.filter((s: any) => s.problemId === problem.id));
-      }
+      const fetchData = async () => {
+        try {
+          const res = await fetch('http://localhost:5001/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+          if (res.ok) {
+            const data = await res.json();
+            setIsBookmarked(data.bookmarks?.includes(problem.id.toString()));
+            const noteObj = data.notes?.find((n: any) => n.problemId === problem.id.toString());
+            if (noteObj) setNotes(noteObj.content);
+          }
+          
+          const subRes = await fetch('http://localhost:5001/api/data/submissions', { headers: { 'Authorization': `Bearer ${token}` } });
+          if (subRes.ok) {
+            const subData = await subRes.json();
+            setSubmissions(subData.filter((s: any) => s.problemId === problem.id.toString()));
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      
+      fetchData();
     }
-  }, [problem, language, user]);
+  }, [problem, language, user, token]);
 
   // Auto-save code to local storage for speed
   useEffect(() => {
@@ -122,38 +126,36 @@ export default function ProblemDetailEnhanced() {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const toggleBookmark = useCallback(() => {
-    if (!user || !problem) return;
+  const toggleBookmark = useCallback(async () => {
+    if (!user || !problem || !token) return;
     
+    // Optimistic UI
     setIsBookmarked(!isBookmarked);
     
-    const storedBookmarks = localStorage.getItem('codearena_bookmarks');
-    let bookmarks = storedBookmarks ? JSON.parse(storedBookmarks).map(Number) : [];
-    
-    if (isBookmarked) {
-      bookmarks = bookmarks.filter((id: number) => id !== problem.id);
-    } else {
-      if (!bookmarks.includes(problem.id)) {
-        bookmarks.push(problem.id);
-      }
+    try {
+      await fetch('http://localhost:5001/api/data/bookmark', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ problemId: problem.id.toString() })
+      });
+    } catch (err) {
+      console.error(err);
+      setIsBookmarked(isBookmarked); // rollback
     }
-    localStorage.setItem('codearena_bookmarks', JSON.stringify(bookmarks));
-  }, [isBookmarked, user, problem]);
+  }, [isBookmarked, user, problem, token]);
 
-  const saveNotes = useCallback(() => {
-    if (!user || !problem) return;
-    const storedNotes = localStorage.getItem('codearena_notes');
-    let notesArr = storedNotes ? JSON.parse(storedNotes) : [];
-    
-    const existingIndex = notesArr.findIndex((n: any) => n.problemId === problem.id);
-    if (existingIndex >= 0) {
-      notesArr[existingIndex].content = notes;
-    } else {
-      notesArr.push({ problemId: problem.id, content: notes });
+  const saveNotes = useCallback(async () => {
+    if (!user || !problem || !token) return;
+    try {
+      await fetch('http://localhost:5001/api/data/note', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: JSON.stringify({ problemId: problem.id.toString(), content: notes })
+      });
+    } catch (err) {
+      console.error(err);
     }
-    
-    localStorage.setItem('codearena_notes', JSON.stringify(notesArr));
-  }, [notes, user, problem]);
+  }, [notes, user, problem, token]);
 
   const copyCode = useCallback(() => {
     navigator.clipboard.writeText(code);
@@ -266,34 +268,33 @@ export default function ProblemDetailEnhanced() {
     setTestResults(results);
     setIsRunning(false);
 
-    // Save submission to local storage
-    if (user) {
-      const payload = {
-        id: Date.now(),
-        problemId: problem.id,
-        problemTitle: problem.title,
-        code,
-        language,
-        status: results.status,
-        runtime: results.runtime,
-        memory: results.memory,
-        passedTests: results.passedTests,
-        totalTests: results.totalTests,
-        timestamp: new Date().toISOString()
-      };
+    // Save submission to backend
+    if (user && token) {
+      try {
+        const payload = {
+          problemId: problem.id.toString(),
+          problemTitle: problem.title,
+          code,
+          language,
+          status: results.status,
+          runtime: results.runtime,
+          memory: results.memory,
+          passedTests: results.passedTests,
+          totalTests: results.totalTests
+        };
 
-      const storedSubs = localStorage.getItem('codearena_submissions');
-      const subs = storedSubs ? JSON.parse(storedSubs) : [];
-      const newSubs = [payload, ...subs];
-      localStorage.setItem('codearena_submissions', JSON.stringify(newSubs));
-      setSubmissions(prev => [payload, ...prev]);
+        const res = await fetch('http://localhost:5001/api/data/submission', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify(payload)
+        });
 
-      if (results.status === 'Accepted') {
-        const storedSolved = localStorage.getItem('codearena_solved');
-        const solvedIds = storedSolved ? JSON.parse(storedSolved).map(Number) : [];
-        if (!solvedIds.includes(problem.id)) {
-          localStorage.setItem('codearena_solved', JSON.stringify([...solvedIds, problem.id]));
+        if (res.ok) {
+          const newSub = await res.json();
+          setSubmissions(prev => [newSub, ...prev]);
         }
+      } catch (err) {
+        console.error(err);
       }
     }
   };

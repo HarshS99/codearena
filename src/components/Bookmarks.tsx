@@ -15,20 +15,31 @@ import {
 
 export default function Bookmarks() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [bookmarkedIds, setBookmarkedIds] = useState<number[]>([]);
   const [solvedIds, setSolvedIds] = useState<number[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState<string>('all');
 
   useEffect(() => {
-    if (user) {
-      const storedBookmarks = localStorage.getItem('codearena_bookmarks');
-      const storedSolved = localStorage.getItem('codearena_solved');
-      if (storedBookmarks) setBookmarkedIds(JSON.parse(storedBookmarks).map(Number));
-      if (storedSolved) setSolvedIds(JSON.parse(storedSolved).map(Number));
+    if (user && token) {
+      const fetchData = async () => {
+        try {
+          const res = await fetch('http://localhost:5001/api/auth/me', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setBookmarkedIds(data.bookmarks?.map(Number) || []);
+            setSolvedIds(data.solvedProblems?.map(Number) || []);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      fetchData();
     }
-  }, [user]);
+  }, [user, token]);
 
   const bookmarkedProblems = useMemo(() => {
     return problems.filter(p => bookmarkedIds.includes(p.id));
@@ -40,11 +51,26 @@ export default function Bookmarks() {
     return matchesSearch && matchesDifficulty;
   });
 
-  const removeBookmark = (e: React.MouseEvent, id: number) => {
+  const removeBookmark = async (e: React.MouseEvent, id: number) => {
     e.stopPropagation();
+    
+    // Optimistic UI updates
     const newBookmarks = bookmarkedIds.filter(b => b !== id);
     setBookmarkedIds(newBookmarks);
-    localStorage.setItem('codearena_bookmarks', JSON.stringify(newBookmarks));
+    
+    if (user && token) {
+      try {
+        await fetch('http://localhost:5001/api/data/bookmark', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+          body: JSON.stringify({ problemId: id.toString() })
+        });
+      } catch (err) {
+        console.error(err);
+        // rollback on error
+        setBookmarkedIds(bookmarkedIds);
+      }
+    }
   };
 
   const easyCount = bookmarkedProblems.filter(p => p.difficulty === 'Easy').length;

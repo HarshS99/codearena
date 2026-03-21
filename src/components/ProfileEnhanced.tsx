@@ -55,23 +55,33 @@ function ActivityHeatmap() {
 }
 
 export default function ProfileEnhanced() {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [activeTab, setActiveTab] = useState<'solved'|'submissions'|'badges'>('solved');
   const [solvedIds, setSolvedIds] = useState<number[]>([]);
   const [submissions, setSubmissions] = useState<any[]>([]);
 
   useEffect(() => {
-    if (user) {
-      const storedSolved = localStorage.getItem('codearena_solved');
-      if (storedSolved) {
-        setSolvedIds(JSON.parse(storedSolved).map(Number));
-      }
-      const storedSubs = localStorage.getItem('codearena_submissions');
-      if (storedSubs) {
-        setSubmissions(JSON.parse(storedSubs));
-      }
+    if (user && token) {
+      const fetchData = async () => {
+        try {
+          const meRes = await fetch('http://localhost:5001/api/auth/me', { headers: { 'Authorization': `Bearer ${token}` } });
+          if (meRes.ok) {
+            const data = await meRes.json();
+            setSolvedIds(data.solvedProblems?.map(Number) || []);
+          }
+          
+          const subRes = await fetch('http://localhost:5001/api/data/submissions', { headers: { 'Authorization': `Bearer ${token}` } });
+          if (subRes.ok) {
+            const data = await subRes.json();
+            setSubmissions(data || []);
+          }
+        } catch (err) {
+          console.error(err);
+        }
+      };
+      fetchData();
     }
-  }, [user]);
+  }, [user, token]);
 
   if (!user) return null;
 

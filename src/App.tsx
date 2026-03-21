@@ -11,9 +11,9 @@ import Contests from './components/contests';
 import DailyChallenge from './components/DailyChallenge';
 import StudyPlan from './components/StudyPlan';
 import Bookmarks from './components/Bookmarks';
-import Companies from './components/Companies';
-import Assessments from './components/Assessments';
-import Premium from './components/Premium';
+// import Companies from './components/Companies';
+// import Assessments from './components/Assessments';
+// import Premium from './components/Premium';
 import { useEffect } from 'react';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -119,7 +119,7 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
-        <Route
+{/* <Route
           path="/companies"
           element={
             <ProtectedRoute>
@@ -142,7 +142,7 @@ function AppContent() {
               <Premium />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/auth"} />} />
       </Routes>
     </div>
