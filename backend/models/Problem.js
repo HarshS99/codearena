@@ -1,4 +1,4 @@
-// Mock Problem model for a backend without MongoDB
+// Mock Problem model for a backend without database requirement
 const problems = require('../../src/data/problemsComplete').problems; // Re-use frontend data if possible
 
 const Problem = {

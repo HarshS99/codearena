@@ -1,4 +1,4 @@
-// Mock User model for a backend without MongoDB
+// Mock User model for a backend without database requirement
 const users = []; // In-memory storage
 
 class User {

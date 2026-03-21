@@ -47,7 +47,7 @@ A competitive coding platform where developers can practice, compete, and improv
 
 ### Backend
 - Node.js / Express.js
-- MongoDB / PostgreSQL
+- LocalStorage / SQL (Mocked)
 - Redis (Caching)
 - Docker (Code Execution)
 
@@ -61,7 +61,6 @@ A competitive coding platform where developers can practice, compete, and improv
 ### Prerequisites
 
 - Node.js (v18+)
-- MongoDB / PostgreSQL
 - Docker
 - Redis
 

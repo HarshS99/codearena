@@ -1,4 +1,4 @@
-// Mock Submission model for a backend without MongoDB
+// Mock Submission model for a backend without database requirement
 const submissions = [];
 
 class Submission {
