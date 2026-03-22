@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { problems, getAllCategories, getAllCompanies } from '../data/problemsComplete';
-import { CheckCircle2, Circle, Search, ChevronDown } from 'lucide-react';
+import { CheckCircle2, Circle, Search, ChevronDown, Dices } from 'lucide-react';
 
 const diffColor: Record<string, string> = { Easy: '#00b8a3', Medium: '#ffc01e', Hard: '#ff375f' };
 const diffBg:    Record<string, string> = { Easy: '#00b8a318', Medium: '#ffc01e18', Hard: '#ff375f18' };
@@ -12,6 +12,7 @@ export default function ProblemList() {
   const [cat, setCat]           = useState('All');
   const [company, setCompany]   = useState('All');
   const [activeTab, setActiveTab] = useState<'all'|'easy'|'medium'|'hard'>('all');
+  const navigate = useNavigate();
 
   const solved: number[] = JSON.parse(localStorage.getItem('solvedProblems') || '[]');
   const cats      = ['All', ...getAllCategories()];
@@ -39,6 +40,27 @@ export default function ProblemList() {
     borderRadius: '6px', color: v !== cur ? '#8a8a8a' : '#ffa116', fontSize: '13px',
     cursor: 'pointer', appearance: 'none', outline: 'none', paddingRight: '28px',
   } as React.CSSProperties);
+
+  // Global "R" shortcut for Random Problem
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
+      if (e.key === 'r' || e.key === 'R') {
+        const pList = filtered.length > 0 ? filtered : problems;
+        const rand = pList[Math.floor(Math.random() * pList.length)];
+        navigate(`/problem/${rand.id}`);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [filtered, navigate]);
+
+  const pickRandom = () => {
+    const pList = filtered.length > 0 ? filtered : problems;
+    const rand = pList[Math.floor(Math.random() * pList.length)];
+    navigate(`/problem/${rand.id}`);
+  };
 
   return (
     <div style={{ minHeight: '100vh', background: '#1a1a1a', paddingTop: '72px' }}>
@@ -94,6 +116,16 @@ export default function ProblemList() {
               Reset
             </button>
           )}
+
+          <div style={{ flex: 1 }} />
+
+          <button onClick={pickRandom} style={{
+            display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px',
+            background: '#ffa116', color: '#1a1a1a', border: 'none', borderRadius: '6px',
+            fontWeight: '700', fontSize: '13px', cursor: 'pointer', transition: 'opacity 0.2s',
+          }} onMouseEnter={e => e.currentTarget.style.opacity = '0.8'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+            <Dices size={15} /> Pick Random
+          </button>
         </div>
 
         {/* Difficulty tabs */}

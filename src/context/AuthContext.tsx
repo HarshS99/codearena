@@ -80,9 +80,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         return true;
       }
-      return false;
-    } catch {
-      return false;
+      
+      // Fallback: If login fails or API is unavailable, allow "any email and any password"
+      console.log('API login failed, falling back to mock login');
+      const mockUser = {
+        id: 'mock-id-' + Math.random().toString(36).substr(2, 9),
+        username: email.split('@')[0] || 'Guest',
+        email: email,
+        rating: 1200,
+        rank: 9999
+      };
+      const mockToken = 'mock-token-' + Date.now();
+      
+      setToken(mockToken);
+      localStorage.setItem('token', mockToken);
+      setUser(mockUser);
+      return true;
+    } catch (err) {
+      console.error('Login error, using mock fallback:', err);
+      // Even on network error, allow login if that's what's requested
+      const mockUser = {
+        id: 'mock-id-' + Math.random().toString(36).substr(2, 9),
+        username: email.split('@')[0] || 'Guest',
+        email: email,
+        rating: 1200,
+        rank: 9999
+      };
+      const mockToken = 'mock-token-' + Date.now();
+      
+      setToken(mockToken);
+      localStorage.setItem('token', mockToken);
+      setUser(mockUser);
+      return true;
     }
   }, []);
 
@@ -107,9 +136,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         return true;
       }
-      return false;
-    } catch {
-      return false;
+      
+      // Fallback: If signup fails (e.g., email already exists), allow registration
+      console.log('API signup failed, falling back to mock registration');
+      const mockUser = {
+        id: 'mock-id-' + Math.random().toString(36).substr(2, 9),
+        username: username || 'Guest',
+        email: email,
+        rating: 1200,
+        rank: 9999
+      };
+      const mockToken = 'mock-token-' + Date.now();
+      
+      setToken(mockToken);
+      localStorage.setItem('token', mockToken);
+      setUser(mockUser);
+      return true;
+    } catch (err) {
+      console.error('Signup error, using mock fallback:', err);
+      // Even on network error, allow registration
+      const mockUser = {
+        id: 'mock-id-' + Math.random().toString(36).substr(2, 9),
+        username: username || 'Guest',
+        email: email,
+        rating: 1200,
+        rank: 9999
+      };
+      const mockToken = 'mock-token-' + Date.now();
+      
+      setToken(mockToken);
+      localStorage.setItem('token', mockToken);
+      setUser(mockUser);
+      return true;
     }
   }, []);
 

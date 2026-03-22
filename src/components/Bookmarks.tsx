@@ -5,12 +5,12 @@ import { useAuth } from '../context/AuthContext';
 import {
   Bookmark,
   Search,
-  Filter,
+
   PlayCircle,
   X,
   List,
   CheckCircle2,
-  Clock
+
 } from 'lucide-react';
 
 export default function Bookmarks() {
@@ -92,7 +92,7 @@ export default function Bookmarks() {
               </div>
               <h1 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--lc-text-primary)', marginBottom: '8px' }}>Favorite</h1>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--lc-text-muted)', fontSize: '13px', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'demo'}`} style={{ width: '16px', height: '16px', borderRadius: '50%' }} alt="avatar"/> {user?.username}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'user'}`} style={{ width: '16px', height: '16px', borderRadius: '50%' }} alt="avatar"/> {user?.username}</div>
                 <span>•</span>
                 <span>{bookmarkedProblems.length} questions</span>
               </div>

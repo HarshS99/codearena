@@ -9,12 +9,15 @@ import Leaderboard from './components/Leaderboard';
 import Profile from './components/ProfileEnhanced';
 import Contests from './components/contests';
 import DailyChallenge from './components/DailyChallenge';
-import StudyPlan from './components/StudyPlan';
-import Bookmarks from './components/Bookmarks';
-// import Companies from './components/Companies';
-// import Assessments from './components/Assessments';
-// import Premium from './components/Premium';
-import { useEffect } from 'react';
+import Companies from './components/Companies';
+import Premium from './components/Premium';
+import Chatbot from './components/Chatbot';
+import FocusTimer from './components/FocusTimer';
+import KeyboardShortcuts from './components/KeyboardShortcuts';
+import { useState, useEffect } from 'react';
+import StudyPlan from './components/StudyPlan'; // Assuming this import is needed for the /study-plan route
+import Bookmarks from './components/Bookmarks'; // Assuming this import is needed for the /bookmarks route
+
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -24,27 +27,26 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 function AppContent() {
   const { isAuthenticated } = useAuth();
 
-  // Initialize demo user
+  const [showShortcuts, setShowShortcuts] = useState(false);
+
   useEffect(() => {
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    if (!users.find((u: any) => u.email === 'demo@codearena.com')) {
-      users.push({
-        id: 'demo',
-        username: 'demo_user',
-        email: 'demo@codearena.com',
-        password: 'demo123',
-        solvedProblems: 0,
-        rank: 125,
-        rating: 1500,
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=demo'
-      });
-      localStorage.setItem('users', JSON.stringify(users));
-    }
+    const onKey = (e: KeyboardEvent) => {
+      // Don't trigger if user is typing in an input
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) return;
+      if (e.key === '?') {
+        setShowShortcuts(true);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, []);
 
   return (
     <div className="min-h-screen bg-slate-900">
       {isAuthenticated && <NavbarEnhanced />}
+      {isAuthenticated && <Chatbot />}
+      {isAuthenticated && <FocusTimer />}
+      {showShortcuts && <KeyboardShortcuts onClose={() => setShowShortcuts(false)} />}
       <Routes>
         <Route path="/auth" element={<Auth />} />
         <Route
@@ -119,19 +121,11 @@ function AppContent() {
             </ProtectedRoute>
           }
         />
-{/* <Route
+        <Route
           path="/companies"
           element={
             <ProtectedRoute>
               <Companies />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/assessments"
-          element={
-            <ProtectedRoute>
-              <Assessments />
             </ProtectedRoute>
           }
         />
@@ -142,7 +136,7 @@ function AppContent() {
               <Premium />
             </ProtectedRoute>
           }
-        /> */}
+        />
         <Route path="/" element={<Navigate to={isAuthenticated ? "/dashboard" : "/auth"} />} />
       </Routes>
     </div>
