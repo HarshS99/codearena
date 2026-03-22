@@ -10,8 +10,8 @@ const __dirname = path.dirname(__filename);
 // Serve static files
 app.use(express.static(path.join(__dirname, "dist")));
 
-// React routing support
-app.get("*", (req, res) => {
+// React routing support (FIXED)
+app.get("/*", (req, res) => {
   res.sendFile(path.join(__dirname, "dist", "index.html"));
 });
 
